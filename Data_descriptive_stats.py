@@ -12,7 +12,7 @@ work_dir = os.getcwd()
 # import data using os library
 data = {}
 for data_frame in data_frame_lists:
-    data[data_frame] = pd.read_csv(os.path.join(work_dir + '\\data', data_frame + '.csv'))
+    data[data_frame] = pd.read_csv(os.path.join(work_dir + os.sep + 'data', data_frame + '.csv'))
     
 # make dataframe data_df from the dict for each data_frame
 day_ahead_prices = data['day_ahead_prices']
