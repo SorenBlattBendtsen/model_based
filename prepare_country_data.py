@@ -30,10 +30,26 @@ def transpose_for_country_code(df, country_code):
     df_others.rename(columns={'Timestamp_':'Timestamp'}, inplace=True)
     # merge the two dataframes
     df_country = pd.merge(df_country, df_others, on='Timestamp', how='left')
-    # drop columns that are all 0 or NaN
-    df_country = df_country.dropna(axis=1, how='all')
+    # Make NaN values 0
+    df_dk1 = df_dk1.fillna(0)
+    # drop columns that are all 0
+    df_country = df_country.loc[:, (df_country != 0).any(axis=0)]
 
     return df_country
 
 # Example for DK_1
 df_dk1 = transpose_for_country_code(df, 'DK_1')
+
+# normalize data with mean = 0
+def normalize(df):
+    """
+    Function to normalize the data.
+    Input:
+    - df: pandas dataframe
+    Output:
+    - df: pandas dataframe, the normalized data
+    """
+    df = df.set_index('Timestamp')
+    df = (df - df.mean())/df.std()
+    df = df.reset_index()
+    return df
