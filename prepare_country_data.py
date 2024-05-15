@@ -57,8 +57,26 @@ def split_and_normalize(df):
     # Normalize the data based on the training set
     x_train_mean = X_train.mean()
     x_train_std = X_train.std()
+    y_train_mean = y_train.mean()
+    y_train_std = y_train.std()
 
     X_train = (X_train - x_train_mean) / x_train_std
     X_test = (X_test - x_train_mean) / x_train_std
+    y_train = (y_train - y_train_mean) / y_train_std
+    y_test = (y_test - y_train_mean) / y_train_std
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, x_train_mean, x_train_std, y_train_mean, y_train_std
+
+def cyclical_transformation(df):
+    # Make Hour and Day columns
+    df['Timestamp'] = pd.to_datetime(df['Timestamp'])
+    df['Hour'] = df['Timestamp'].dt.hour
+    df['Day'] = df['Timestamp'].dt.day
+    # make cyclical transformation of Hour and Day
+    df['Hour_sin'] = np.sin(df['Hour']*(2.*np.pi/24))
+    df['Hour_cos'] = np.cos(df['Hour']*(2.*np.pi/24))
+    df['Day_sin'] = np.sin(df['Day']*(2.*np.pi/7))
+    df['Day_cos'] = np.cos(df['Day']*(2.*np.pi/7))
+    df = df.drop(columns=['Hour', 'Day'])
+
+    return df
