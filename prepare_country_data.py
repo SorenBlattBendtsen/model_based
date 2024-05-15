@@ -57,11 +57,15 @@ def split_and_normalize(df):
     # Normalize the data based on the training set
     x_train_mean = X_train.mean()
     x_train_std = X_train.std()
+    y_train_mean = y_train.mean()
+    y_train_std = y_train.std()
 
     X_train = (X_train - x_train_mean) / x_train_std
     X_test = (X_test - x_train_mean) / x_train_std
+    y_train = (y_train - y_train_mean) / y_train_std
+    y_test = (y_test - y_train_mean) / y_train_std
 
-    return X_train, X_test, y_train, y_test
+    return X_train, X_test, y_train, y_test, x_train_mean, x_train_std, y_train_mean, y_train_std
 
 def cyclical_transformation(df):
     # Make Hour and Day columns
