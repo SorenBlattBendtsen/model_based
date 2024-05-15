@@ -30,6 +30,8 @@ def transpose_for_country_code(df, country_code):
     df_others.rename(columns={'Timestamp_':'Timestamp'}, inplace=True)
     # merge the two dataframes
     df_country = pd.merge(df_country, df_others, on='Timestamp', how='left')
+    # drop columns that are all 0 or NaN
+    df_country = df_country.dropna(axis=1, how='all')
 
     return df_country
 
