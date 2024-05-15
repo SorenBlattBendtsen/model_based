@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 df = pd.read_csv("data/2023/nordic_energy_data.csv")
 
@@ -34,22 +35,30 @@ def transpose_for_country_code(df, country_code):
     df_country = df_country.fillna(0)
     # drop columns that are all 0
     df_country = df_country.loc[:, (df_country != 0).any(axis=0)]
+    # Drop columns where the value for all rows are the same
+    df_country = df_country.loc[:, df_country.nunique() != 1]
 
     return df_country
 
-# Example for DK_1
-df_dk1 = transpose_for_country_code(df, 'DK_1')
 
-# normalize data with mean = 0
-def normalize(df):
-    """
-    Function to normalize the data.
-    Input:
-    - df: pandas dataframe
-    Output:
-    - df: pandas dataframe, the normalized data
-    """
-    df = df.set_index('Timestamp')
-    df = (df - df.mean())/df.std()
-    df = df.reset_index()
-    return df
+def split_and_normalize(df):
+
+    # Make timestamp the index
+    df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+    df.set_index("Timestamp", inplace=True)
+
+    # split the data into features and target
+    y = df["DA-price [EUR/MWh]"]
+    X = df.drop(columns=["DA-price [EUR/MWh]"])
+
+    # split the data into training and test set
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+
+    # Normalize the data based on the training set
+    x_train_mean = X_train.mean()
+    x_train_std = X_train.std()
+
+    X_train = (X_train - x_train_mean) / x_train_std
+    X_test = (X_test - x_train_mean) / x_train_std
+
+    return X_train, X_test, y_train, y_test
