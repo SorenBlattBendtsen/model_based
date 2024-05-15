@@ -34,22 +34,17 @@ def transpose_for_country_code(df, country_code):
     df_country = df_country.fillna(0)
     # drop columns that are all 0
     df_country = df_country.loc[:, (df_country != 0).any(axis=0)]
+    # Drop columns where the value for all rows are the same
+    df_country = df_country.loc[:, df_country.nunique() != 1]
 
     return df_country
 
-# Example for DK_1
-df_dk1 = transpose_for_country_code(df, 'DK_1')
 
-# normalize data with mean = 0
 def normalize(df):
-    """
-    Function to normalize the data.
-    Input:
-    - df: pandas dataframe
-    Output:
-    - df: pandas dataframe, the normalized data
-    """
-    df = df.set_index('Timestamp')
-    df = (df - df.mean())/df.std()
-    df = df.reset_index()
+    # normalize numerical features
+    for col in df.iloc[:,2:].columns:
+        if df[col].dtype == np.float64:
+            mean = df[col].mean()
+            std = df[col].std()
+            df[col] = (df[col] - mean) / std
     return df
