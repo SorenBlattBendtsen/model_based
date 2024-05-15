@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 df = pd.read_csv("data/2023/nordic_energy_data.csv")
 
@@ -40,11 +41,24 @@ def transpose_for_country_code(df, country_code):
     return df_country
 
 
-def normalize(df):
-    # normalize numerical features
-    for col in df.iloc[:,2:].columns:
-        if df[col].dtype == np.float64:
-            mean = df[col].mean()
-            std = df[col].std()
-            df[col] = (df[col] - mean) / std
-    return df
+def split_and_normalize(df):
+
+    # Make timestamp the index
+    df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+    df.set_index("Timestamp", inplace=True)
+
+    # split the data into features and target
+    y = df["DA-price [EUR/MWh]"]
+    X = df.drop(columns=["DA-price [EUR/MWh]"])
+
+    # split the data into training and test set
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+
+    # Normalize the data based on the training set
+    x_train_mean = X_train.mean()
+    x_train_std = X_train.std()
+
+    X_train = (X_train - x_train_mean) / x_train_std
+    X_test = (X_test - x_train_mean) / x_train_std
+
+    return X_train, X_test, y_train, y_test
