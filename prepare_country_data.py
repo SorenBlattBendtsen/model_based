@@ -41,7 +41,7 @@ def transpose_for_country_code(df, country_code):
     return df_country
 
 
-def split_and_normalize(df):
+def split_and_normalize(df, test_days):
 
     # Make timestamp the index
     df["Timestamp"] = pd.to_datetime(df["Timestamp"])
@@ -51,8 +51,11 @@ def split_and_normalize(df):
     y = df["DA-price [EUR/MWh]"]
     X = df.drop(columns=["DA-price [EUR/MWh]"])
 
+    len_df = len(df)
+    test_size = (test_days * 24) / len_df
+
     # split the data into training and test set
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=False)
 
     # Normalize the data based on the training set
     x_train_mean = X_train.mean()
@@ -60,10 +63,22 @@ def split_and_normalize(df):
     y_train_mean = y_train.mean()
     y_train_std = y_train.std()
 
+    # Normalize the data based on the training set
     X_train = (X_train - x_train_mean) / x_train_std
     X_test = (X_test - x_train_mean) / x_train_std
     y_train = (y_train - y_train_mean) / y_train_std
     y_test = (y_test - y_train_mean) / y_train_std
+
+    # make NaN and Inf 0
+    X_train = X_train.fillna(0)
+    X_test = X_test.fillna(0)
+    y_train = y_train.fillna(0)
+    y_test = y_test.fillna(0)
+    X_train = X_train.replace([np.inf, -np.inf], 0)
+    X_test = X_test.replace([np.inf, -np.inf], 0)
+    # drop columns that are all 0
+    X_train = X_train.loc[:, (X_train != 0).any(axis=0)]
+    X_test = X_test.loc[:, (X_test != 0).any(axis=0)]
 
     return X_train, X_test, y_train, y_test, x_train_mean, x_train_std, y_train_mean, y_train_std
 
